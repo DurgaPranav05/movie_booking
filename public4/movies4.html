@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Movies Management</title>
+
+    <style>
+        body {
+            font-family: Arial;
+            background-color: #f2f2f2;
+            padding: 20px;
+        }
+
+        h1 {
+            text-align: center;
+            color: darkred;
+        }
+
+        nav {
+            text-align: center;
+            margin: 25px;
+        }
+
+        nav a {
+            text-decoration: none;
+            background-color: darkred;
+            color: white;
+            padding: 10px;
+            margin: 5px;
+        }
+
+        form {
+            background-color: white;
+            padding: 20px;
+            width: 350px;
+            margin: auto;
+        }
+
+        input, button {
+            width: 100%;
+            padding: 10px;
+            margin: 8px 0;
+            box-sizing: border-box;
+        }
+
+        button {
+            background-color: darkred;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background-color: white;
+            margin-top: 30px;
+        }
+
+        th, td {
+            border: 1px solid black;
+            padding: 10px;
+            text-align: center;
+        }
+
+        th {
+            background-color: lightcoral;
+        }
+    </style>
+</head>
+
+<body>
+
+    <h1>Movies Management</h1>
+
+    <nav>
+        <a href="index4.html">Home</a>
+        <a href="movies4.html">Movies</a>
+        <a href="customers4.html">Customers</a>
+        <a href="bookings4.html">Bookings</a>
+        <a href="about4.html">About</a>
+    </nav>
+
+    <h2>Add Movie</h2>
+
+    <form id="movieForm">
+
+        <input type="text" id="movie_name" placeholder="Movie Name" required>
+
+        <input type="text" id="genre" placeholder="Genre" required>
+
+        <input type="number" id="duration" placeholder="Duration (Minutes)" required>
+
+        <button type="submit">Add Movie</button>
+
+    </form>
+
+    <h2>Movies List</h2>
+
+    <table>
+
+        <tr>
+            <th>Movie ID</th>
+            <th>Movie Name</th>
+            <th>Genre</th>
+            <th>Duration</th>
+            <th>Actions</th>
+        </tr>
+
+        <tbody id="movies"></tbody>
+
+    </table>
+
+    <script>
+
+        function loadMovies() {
+
+            fetch('/movies')
+            .then(response => response.json())
+            .then(data => {
+
+                let rows = "";
+
+                data.forEach(movie => {
+
+                    rows += `
+                    <tr>
+                        <td>${movie.movie_id}</td>
+                        <td>${movie.movie_name}</td>
+                        <td>${movie.genre}</td>
+                        <td>${movie.duration}</td>
+
+                        <td>
+                            <button onclick="editMovie(${movie.movie_id}, '${movie.movie_name}', '${movie.genre}', ${movie.duration})">Edit</button>
+
+                            <button onclick="deleteMovie(${movie.movie_id})">Delete</button>
+                        </td>
+                    </tr>`;
+
+                });
+
+                document.getElementById("movies").innerHTML = rows;
+
+            });
+
+        }
+
+
+        document.getElementById("movieForm").addEventListener("submit", function(e) {
+
+            e.preventDefault();
+
+            fetch('/movies', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    movie_name: document.getElementById("movie_name").value,
+                    genre: document.getElementById("genre").value,
+                    duration: document.getElementById("duration").value
+                })
+            })
+            .then(() => {
+                this.reset();
+                loadMovies();
+            });
+
+        });
+
+
+        function deleteMovie(id) {
+
+            fetch('/movies/' + id, {
+                method: 'DELETE'
+            })
+            .then(() => loadMovies());
+
+        }
+
+
+        function editMovie(id, name, genre, duration) {
+
+            let newName = prompt("Enter Movie Name", name);
+            let newGenre = prompt("Enter Genre", genre);
+            let newDuration = prompt("Enter Duration", duration);
+
+            if (newName && newGenre && newDuration) {
+
+                fetch('/movies/' + id, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        movie_name: newName,
+                        genre: newGenre,
+                        duration: newDuration
+                    })
+                })
+                .then(() => loadMovies());
+
+            }
+
+        }
+
+        loadMovies();
+
+    </script>
+
+</body>
+</html>

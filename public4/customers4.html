@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Customers Management</title>
+
+    <style>
+        body {
+            font-family: Arial;
+            background-color: #f2f2f2;
+            padding: 20px;
+        }
+
+        h1 {
+            text-align: center;
+            color: darkred;
+        }
+
+        nav {
+            text-align: center;
+            margin: 25px;
+        }
+
+        nav a {
+            text-decoration: none;
+            background-color: darkred;
+            color: white;
+            padding: 10px;
+            margin: 5px;
+        }
+
+        form {
+            background-color: white;
+            padding: 20px;
+            width: 350px;
+            margin: auto;
+        }
+
+        input, button {
+            width: 100%;
+            padding: 10px;
+            margin: 8px 0;
+            box-sizing: border-box;
+        }
+
+        button {
+            background-color: darkred;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background-color: white;
+            margin-top: 30px;
+        }
+
+        th, td {
+            border: 1px solid black;
+            padding: 10px;
+            text-align: center;
+        }
+
+        th {
+            background-color: lightcoral;
+        }
+    </style>
+</head>
+
+<body>
+
+    <h1>Customers Management</h1>
+
+    <nav>
+        <a href="index4.html">Home</a>
+        <a href="movies4.html">Movies</a>
+        <a href="customers4.html">Customers</a>
+        <a href="bookings4.html">Bookings</a>
+        <a href="about4.html">About</a>
+    </nav>
+
+    <h2>Add Customer</h2>
+
+    <form id="customerForm">
+
+        <input type="text" id="name" placeholder="Customer Name" required>
+
+        <input type="text" id="phone" placeholder="Phone Number" required>
+
+        <input type="email" id="email" placeholder="Email Address" required>
+
+        <button type="submit">Add Customer</button>
+
+    </form>
+
+    <h2>Customers List</h2>
+
+    <table>
+
+        <tr>
+            <th>Customer ID</th>
+            <th>Name</th>
+            <th>Phone</th>
+            <th>Email</th>
+            <th>Actions</th>
+        </tr>
+
+        <tbody id="customers"></tbody>
+
+    </table>
+
+    <script>
+
+        function loadCustomers() {
+
+            fetch('/customers')
+            .then(response => response.json())
+            .then(data => {
+
+                let rows = "";
+
+                data.forEach(customer => {
+
+                    rows += `
+                    <tr>
+                        <td>${customer.customer_id}</td>
+                        <td>${customer.name}</td>
+                        <td>${customer.phone}</td>
+                        <td>${customer.email}</td>
+
+                        <td>
+                            <button onclick="editCustomer(${customer.customer_id}, '${customer.name}', '${customer.phone}', '${customer.email}')">Edit</button>
+
+                            <button onclick="deleteCustomer(${customer.customer_id})">Delete</button>
+                        </td>
+                    </tr>`;
+
+                });
+
+                document.getElementById("customers").innerHTML = rows;
+
+            });
+
+        }
+
+
+        document.getElementById("customerForm").addEventListener("submit", function(e) {
+
+            e.preventDefault();
+
+            fetch('/customers', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    name: document.getElementById("name").value,
+                    phone: document.getElementById("phone").value,
+                    email: document.getElementById("email").value
+                })
+            })
+            .then(() => {
+                this.reset();
+                loadCustomers();
+            });
+
+        });
+
+
+        function deleteCustomer(id) {
+
+            fetch('/customers/' + id, {
+                method: 'DELETE'
+            })
+            .then(() => loadCustomers());
+
+        }
+
+
+        function editCustomer(id, name, phone, email) {
+
+            let newName = prompt("Enter Name", name);
+            let newPhone = prompt("Enter Phone", phone);
+            let newEmail = prompt("Enter Email", email);
+
+            if (newName && newPhone && newEmail) {
+
+                fetch('/customers/' + id, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        name: newName,
+                        phone: newPhone,
+                        email: newEmail
+                    })
+                })
+                .then(() => loadCustomers());
+
+            }
+
+        }
+
+        loadCustomers();
+
+    </script>
+
+</body>
+</html>
